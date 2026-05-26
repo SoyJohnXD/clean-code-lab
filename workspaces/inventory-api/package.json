@@ -1,0 +1,14 @@
+{
+  "name": "inventory-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/main.js",
+    "test": "node --test",
+    "check": "node --check src/main.js && node --check src/domain/product.js && node --check src/domain/inventory-errors.js && node --check src/application/inventory-service.js && node --check src/infrastructure/in-memory-product-repository.js && node --check src/http/create-server.js && node --check src/http/http-constants.js && node --check src/http/json-response.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

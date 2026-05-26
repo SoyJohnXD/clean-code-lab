@@ -1,0 +1,6 @@
+.git-publish/
+node_modules/
+.env
+.DS_Store
+coverage/
+workspaces/*/.git/
