@@ -1,0 +1,10 @@
+{
+  "name": "todo-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "npm test",
+    "test": "node --test test/*.test.js"
+  }
+}

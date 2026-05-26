@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Todo App</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <script type="module" src="./src/app.js"></script>
+  </head>
+  <body>
+    <main class="todo-shell" aria-labelledby="app-title">
+      <section class="todo-card">
+        <div class="todo-header">
+          <p class="eyebrow">Clean Code Lab</p>
+          <h1 id="app-title">Todo App</h1>
+          <p class="subtitle">Capture tasks, focus on active work, and clear what is done.</p>
+        </div>
+
+        <form class="todo-form" data-todo-form>
+          <label class="visually-hidden" for="todo-title">New todo</label>
+          <input
+            id="todo-title"
+            name="todoTitle"
+            type="text"
+            maxlength="120"
+            autocomplete="off"
+            placeholder="Add a task..."
+            data-todo-input
+          />
+          <button type="submit">Add</button>
+        </form>
+
+        <p class="form-error" role="status" data-form-error></p>
+
+        <div class="toolbar" aria-label="Todo filters">
+          <button class="filter-button is-selected" type="button" data-filter="all">All</button>
+          <button class="filter-button" type="button" data-filter="active">Active</button>
+          <button class="filter-button" type="button" data-filter="completed">Completed</button>
+        </div>
+
+        <ul class="todo-list" data-todo-list aria-live="polite"></ul>
+
+        <footer class="todo-footer">
+          <span data-todo-summary>0 tasks left</span>
+          <button class="text-button" type="button" data-clear-completed>Clear completed</button>
+        </footer>
+      </section>
+    </main>
+  </body>
+</html>

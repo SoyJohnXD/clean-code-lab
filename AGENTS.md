@@ -4,14 +4,11 @@ This lab is a pilot. Do not apply these standards globally yet.
 
 ## Activation
 
-Use `skills/clean-code-standards/SKILL.md` only when the user explicitly asks for:
+For any task that creates, modifies, refactors, or reviews code inside this lab, load and follow:
 
-- `clean-code-standards`
-- `clean code`
-- `normativa clean-code`
-- `aplica la normativa`
+- `skills/clean-code-standards/SKILL.md`
 
-If the user does not activate the standard, work normally and do not claim that the Clean Code Gate passed.
+The user should not need to repeat the standard in every prompt. The lab context is the activation boundary.
 
 ## Workspace Rules
 
@@ -20,11 +17,18 @@ If the user does not activate the standard, work normally and do not claim that 
 - Do not modify global Codex, OpenCode, Claude, or Gentle AI configuration from this lab.
 - Do not rewrite unrelated code to satisfy the standard; improve the code being created or touched.
 
+## Clarification Rule
+
+Before writing code, ask concise clarification questions when the request lacks enough information to implement safely. Do not guess critical product behavior, stack constraints, data models, acceptance criteria, or integration boundaries.
+
+If the missing detail has a safe, reversible default, state the default as an assumption before coding.
+
 ## Local Quality Contract
 
-When the standard is active, every implementation must report:
+Every code task in this lab must report:
 
 - Slice boundary.
+- Assumptions or clarification questions.
 - Files created or modified.
 - Tests/checks run.
 - `Clean Code Gate: passed` or `Clean Code Gate: blocked`.
