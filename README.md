@@ -4,10 +4,10 @@ Local pilot for validating a clean-code standard before promoting it to global a
 
 ## How to Use
 
-Ask an agent to work inside this folder and explicitly activate the standard:
+Ask an agent to work inside this folder. The local `AGENTS.md` applies the clean-code skill automatically for code tasks:
 
 ```text
-Use clean-code-standards. Create a small full-stack project in workspaces/<name> that...
+Create a small full-stack project in workspaces/<name> that...
 ```
 
 The agent should load:
@@ -15,6 +15,8 @@ The agent should load:
 - `AGENTS.md`
 - `skills/clean-code-standards/SKILL.md`
 - `docs/clean-code-rubric.md`
+
+If the request is too vague, the agent should ask questions before coding instead of guessing.
 
 ## What This Lab Is For
 
