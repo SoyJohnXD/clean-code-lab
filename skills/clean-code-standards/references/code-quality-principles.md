@@ -12,6 +12,20 @@ Good code should read like a clear technical book:
 - Tests explain behavior.
 - The absence of comments is earned by clarity.
 
+## AI Code Generation Requires Design Constraints
+
+AI removes much of the friction from writing functions, classes, endpoints, and tests. That does not make good software cheaper. The scarce part is still deciding what to build, how to structure it, and why that shape is better than a simpler alternative.
+
+An unconstrained agent can create instant legacy: code that works today but raises the cost of every future change. Clean-code guidance must therefore act as a design boundary before implementation, not as decoration after code exists.
+
+Use this stance when guiding agents:
+
+- Code is cheap; durable software is not.
+- The agent accelerates implementation, but the prompt and skill supply design judgment.
+- Prefer structure that reduces future change cost over structure that merely looks architectural.
+- Every abstraction must pay rent now through clearer intent, lower coupling, or simpler change.
+- Passing tests does not compensate for avoidable maintenance burden.
+
 ## Preferred Implementation Strategy
 
 Use **design by slice**:
