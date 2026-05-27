@@ -6,7 +6,8 @@ This lab is a pilot. Do not apply these standards globally yet.
 
 For any task that creates, modifies, refactors, or reviews code inside this lab, load and follow:
 
-- `skills/clean-code-standards/SKILL.md`
+- `harness/HARNESS.md` — the 3-phase control workflow (Plan, Apply loop, Verify).
+- `skills/clean-code-standards/SKILL.md` — the design judgment the harness gates against.
 
 The user should not need to repeat the standard in every prompt. The lab context is the activation boundary.
 
