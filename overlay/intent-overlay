@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+# intent-overlay — install the governance overlay as a global user-skill (gentle-ai compatible).
+# Canonical lives in the user's skill hub (~/.codex/skills); other scanned roots get symlinks.
+# gentle-ai reads user skills and injects their Compact Rules; it never owns or prunes them.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SRC="$SCRIPT_DIR/skill"
+SKILL="intent-overlay"
+
+hub() { printf '%s' "$HOME/.codex/skills"; }
+canonical() { printf '%s' "$(hub)/$SKILL"; }
+
+# Scanned user roots that receive a symlink — only if the root already exists.
+link_roots() {
+  printf '%s\n' \
+    "$HOME/.claude/skills" \
+    "$HOME/.agents/skills" \
+    "$HOME/.pi/agent/skills" \
+    "$HOME/.config/opencode/skills"
+}
+
+file_contains() { # file_contains NEEDLE FILE
+  local needle=$1 line
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in *"$needle"*) return 0 ;; esac
+  done <"$2"
+  return 1
+}
+
+usage() {
+  cat <<'USAGE'
+Usage: intent-overlay <command>
+  install    Copy the skill into the hub (~/.codex/skills) and symlink it into existing user roots.
+  uninstall  Remove the symlinks and the canonical skill.
+  doctor     Verify the canonical skill, its Compact Rules, and the symlinks.
+USAGE
+}
+
+do_install() {
+  [ -f "$SRC/SKILL.md" ] || { echo "error: skill source not found at $SRC" >&2; return 1; }
+  local canon root link
+  canon="$(canonical)"
+  mkdir -p "$canon"
+  cp -R "$SRC/." "$canon/"
+  while IFS= read -r root; do
+    [ -d "$root" ] || continue
+    link="$root/$SKILL"
+    if [ -L "$link" ] && [ "$(readlink "$link")" = "$canon" ]; then continue; fi
+    rm -rf "$link"
+    ln -s "$canon" "$link"
+  done < <(link_roots)
+  echo "intent-overlay installed (canonical: $canon)."
+  echo "Run /skill-registry:refresh (or restart your session) so gentle-ai indexes it."
+}
+
+do_uninstall() {
+  local canon root link
+  canon="$(canonical)"
+  while IFS= read -r root; do
+    link="$root/$SKILL"
+    [ -L "$link" ] && rm -f "$link"
+  done < <(link_roots)
+  rm -rf "$canon"
+  echo "intent-overlay removed."
+}
+
+do_doctor() {
+  local canon root link ok=0
+  canon="$(canonical)"
+  if [ -f "$canon/SKILL.md" ]; then
+    echo "ok   - canonical present: $canon"
+  else
+    echo "FAIL - canonical missing: $canon"; ok=1
+  fi
+  if [ -f "$canon/SKILL.md" ] && file_contains "## Compact Rules" "$canon/SKILL.md"; then
+    echo "ok   - SKILL.md declares Compact Rules"
+  else
+    echo "FAIL - SKILL.md missing Compact Rules"; ok=1
+  fi
+  while IFS= read -r root; do
+    [ -d "$root" ] || continue
+    link="$root/$SKILL"
+    [ -L "$link" ] || continue
+    if [ -e "$link" ] && [ "$(readlink "$link")" = "$canon" ]; then
+      echo "ok   - symlink valid: $link"
+    else
+      echo "FAIL - broken or wrong symlink: $link"; ok=1
+    fi
+  done < <(link_roots)
+  return $ok
+}
+
+main() {
+  case "${1:-}" in
+    install) do_install ;;
+    uninstall) do_uninstall ;;
+    doctor) do_doctor ;;
+    ""|-h|--help) usage ;;
+    *) usage; return 1 ;;
+  esac
+}
+
+main "$@"
