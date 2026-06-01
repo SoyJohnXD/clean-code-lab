@@ -36,12 +36,16 @@ decision halt the chain and return to the human as a change request — never ap
 ## CLI
 
 ```bash
-overlay/intent-overlay install     # copy the skill to ~/.codex/skills + symlink into existing roots
-overlay/intent-overlay doctor      # verify the canonical skill, its Compact Rules, and the symlinks
-overlay/intent-overlay uninstall   # remove symlinks and the canonical skill (reversible)
+overlay/intent-overlay install         # discovery + always-on block + hard gate, into every present host
+overlay/intent-overlay doctor          # verify canonical skill, symlinks, and each host's hook + block
+overlay/intent-overlay uninstall       # reverse everything (reversible)
+overlay/intent-overlay freeze <change> # write .atl/intent/<change>.frozen so the hard gate allows edits
+overlay/intent-overlay unfreeze <change>
 ```
 
-After `install`, run `/skill-registry:refresh` or start a new session so gentle indexes it.
+After `install`, run `gentle-ai skill-registry refresh --force` in a project (it is a shell command,
+**not** a Codex slash command) or start a new session so gentle indexes it. In Codex, approve the hook
+once via `/hooks`.
 
 The canonical lives in your skill hub (`~/.codex/skills/intent-overlay/`) and is symlinked into the
 other scanned roots that already exist (`~/.claude/skills`, `~/.agents/skills`, …) — mirroring how your
@@ -50,8 +54,8 @@ existing skills are laid out.
 ## Verify it works
 
 1. `overlay/intent-overlay install` then `overlay/intent-overlay doctor` → all checks green.
-2. `/skill-registry:refresh` in any project, then confirm `intent-overlay` appears in
-   `.atl/skill-registry.md` with its compact rules — proof gentle will inject it.
+2. `gentle-ai skill-registry refresh --force` in any project, then confirm `intent-overlay` appears
+   in `.atl/skill-registry.md` with its compact rules — proof gentle will inject it.
 3. **Dogfood (acceptance):** start a small SDD change, freeze an Intent Contract whose **Out-of-scope**
    excludes persistence, then during `design` deliberately steer toward adding persistence. Expected:
    the Intent Gate reports `drift-detected`, the chain halts, and it comes back as a change request —
