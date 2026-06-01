@@ -1,0 +1,16 @@
+{
+  "_comment": "Intent Overlay — Claude Code hard gate (template). The installer deep-merges this into ~/.claude/settings.json, substituting __GATE__ with the absolute path of the installed check-intent-frozen.sh. Claude blocks the matched tool when the script returns permissionDecision: deny.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__GATE__ --json"
+          }
+        ]
+      }
+    ]
+  }
+}

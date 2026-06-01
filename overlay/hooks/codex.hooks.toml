@@ -1,0 +1,20 @@
+# Intent Overlay — Codex hard gate (template).
+# The installer appends this block to ~/.codex/config.toml, substituting __GATE__ with the
+# absolute path of the installed check-intent-frozen.sh. Codex blocks the tool call when the
+# script returns the deny envelope (no frozen Intent Contract).
+#
+# Scope: the code-mutating tools only. Gating edits already prevents code from existing before a
+# freeze, so Bash/commit gating is intentionally left out (a Bash matcher only sees the tool name,
+# not the command, and would block read-only shell calls).
+#
+# First use requires trust: run `/hooks` in Codex and approve it (re-approve if the script changes).
+
+# >>> intent-overlay (managed) >>>
+[[hooks.PreToolUse]]
+matcher = "^(Edit|Write|apply_patch)$"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "__GATE__ --json"
+timeout = 15
+# <<< intent-overlay (managed) <<<

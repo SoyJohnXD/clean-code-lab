@@ -1,0 +1,296 @@
+#!/usr/bin/env bash
+# intent-overlay — install the governance overlay across hosts (Claude, Codex, OpenCode).
+#
+# Three planes (see overlay/adapters/*.md):
+#   discovery  — canonical skill in the hub (~/.codex/skills) + symlinks into each host's skill root
+#   always-on  — the INVARIANTS block injected into each host's global instructions (reversible)
+#   hard gate  — a PreToolUse hook per host that denies code edits with no frozen Intent Contract
+#
+# Canonical skill + the shared gate script live in the hub; hosts get symlinks, hook fragments, and
+# the instruction block. We never write gentle-ai-owned files.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SRC="$SCRIPT_DIR/skill"
+HOOKS_SRC="$SCRIPT_DIR/hooks"
+INVARIANTS_SRC="$SCRIPT_DIR/instructions/INVARIANTS.md"
+SKILL="intent-overlay"
+
+START="<!-- intent-overlay:start -->"
+END="<!-- intent-overlay:end -->"
+TOML_START="# >>> intent-overlay (managed) >>>"
+TOML_END="# <<< intent-overlay (managed) <<<"
+GATE_MARK="check-intent-frozen.sh"  # identifies our entry inside settings.json
+
+hub() { printf '%s' "$HOME/.codex/skills"; }
+canonical() { printf '%s' "$(hub)/$SKILL"; }
+gate_path() { printf '%s' "$(canonical)/hooks/check-intent-frozen.sh"; }
+
+# Scanned skill roots that receive a discovery symlink — only if the root already exists.
+link_roots() {
+  printf '%s\n' \
+    "$HOME/.claude/skills" \
+    "$HOME/.agents/skills" \
+    "$HOME/.pi/agent/skills" \
+    "$HOME/.config/opencode/skills"
+}
+
+usage() {
+  cat <<'USAGE'
+Usage: intent-overlay <command> [args]
+  install            Install discovery + always-on + hard gate into every present host.
+  uninstall          Reverse install: remove hooks, instruction blocks, symlinks, and canonical.
+  doctor             Verify the canonical skill, the symlinks, and each host's hook + block.
+  freeze <change>    Write the freeze sentinel .atl/intent/<change>.frozen in the current project.
+  unfreeze <change>  Remove that sentinel.
+USAGE
+}
+
+# --- text helpers (pure bash, mirroring the existing scripts; no sed/awk) -----------------------
+
+file_has_line() { # file_has_line NEEDLE FILE
+  local needle=$1 file=$2 line
+  [ -f "$file" ] || return 1
+  while IFS= read -r line || [ -n "$line" ]; do
+    [ "$line" = "$needle" ] && return 0
+  done <"$file"
+  return 1
+}
+
+file_contains() { # file_contains NEEDLE FILE — substring match anywhere in a line
+  local needle=$1 file=$2 line
+  [ -f "$file" ] || return 1
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in *"$needle"*) return 0 ;; esac
+  done <"$file"
+  return 1
+}
+
+# Print the span START..END (inclusive) from a source file, substituting __GATE__.
+extract_block() { # extract_block FILE START END
+  local file=$1 s=$2 e=$3 line inside=0 gate
+  gate="$(gate_path)"
+  while IFS= read -r line || [ -n "$line" ]; do
+    [ "$line" = "$s" ] && inside=1
+    if [ "$inside" -eq 1 ]; then printf '%s\n' "${line//__GATE__/$gate}"; fi
+    [ "$line" = "$e" ] && inside=0
+  done <"$file"
+}
+
+# Append a marked block to FILE if its START marker is not already present. Creates parents.
+inject_block() { # inject_block FILE START_MARKER BLOCK_TEXT
+  local file=$1 marker=$2 block=$3
+  mkdir -p "$(dirname "$file")"
+  [ -f "$file" ] || : >"$file"
+  if file_has_line "$marker" "$file"; then return 0; fi
+  printf '\n%s\n' "$block" >>"$file"
+}
+
+# Remove the marked block (and one preceding blank line) from FILE, leaving the rest byte-identical.
+remove_block() { # remove_block FILE START_MARKER END_MARKER
+  local file=$1 s=$2 e=$3
+  [ -f "$file" ] || return 0
+  local -a lines=() out=()
+  local line
+  while IFS= read -r line || [ -n "$line" ]; do lines+=("$line"); done <"$file"
+  local i n=${#lines[@]} start_idx=-1 end_idx=-1
+  for ((i = 0; i < n; i++)); do
+    [ "${lines[i]}" = "$s" ] && [ "$start_idx" -lt 0 ] && start_idx=$i
+    [ "${lines[i]}" = "$e" ] && [ "$start_idx" -ge 0 ] && { end_idx=$i; break; }
+  done
+  if [ "$start_idx" -lt 0 ] || [ "$end_idx" -lt 0 ]; then return 0; fi
+  if [ "$start_idx" -gt 0 ] && [ -z "${lines[start_idx - 1]}" ]; then start_idx=$((start_idx - 1)); fi
+  for ((i = 0; i < n; i++)); do
+    if [ "$i" -ge "$start_idx" ] && [ "$i" -le "$end_idx" ]; then continue; fi
+    out+=("${lines[i]}")
+  done
+  : >"$file"
+  for line in "${out[@]}"; do printf '%s\n' "$line" >>"$file"; done
+}
+
+# --- Claude settings.json merge (structured; python stdlib) -------------------------------------
+
+claude_settings_install() { # claude_settings_install FILE GATE
+  local file=$1 gate=$2
+  mkdir -p "$(dirname "$file")"
+  GATE="$gate" python3 - "$file" <<'PY'
+import json, os, sys
+path = sys.argv[1]
+gate = os.environ["GATE"]
+cmd = f"{gate} --json"
+try:
+    with open(path) as f: data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    data = {}
+hooks = data.setdefault("hooks", {})
+pre = hooks.setdefault("PreToolUse", [])
+pre = [e for e in pre if "check-intent-frozen.sh" not in json.dumps(e)]  # drop a stale entry
+pre.append({"matcher": "Edit|Write|MultiEdit",
+            "hooks": [{"type": "command", "command": cmd}]})
+hooks["PreToolUse"] = pre
+with open(path, "w") as f:
+    json.dump(data, f, indent=2); f.write("\n")
+PY
+}
+
+claude_settings_uninstall() { # claude_settings_uninstall FILE
+  local file=$1
+  [ -f "$file" ] || return 0
+  python3 - "$file" <<'PY'
+import json, sys
+path = sys.argv[1]
+try:
+    with open(path) as f: data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    sys.exit(0)
+hooks = data.get("hooks", {})
+pre = [e for e in hooks.get("PreToolUse", []) if "check-intent-frozen.sh" not in json.dumps(e)]
+if pre: hooks["PreToolUse"] = pre
+else: hooks.pop("PreToolUse", None)
+if not hooks: data.pop("hooks", None)
+with open(path, "w") as f:
+    json.dump(data, f, indent=2); f.write("\n")
+PY
+}
+
+# --- per-host wiring -----------------------------------------------------------------------------
+
+invariants_block() { extract_block "$INVARIANTS_SRC" "$START" "$END"; }
+codex_hook_block() { extract_block "$HOOKS_SRC/codex.hooks.toml" "$TOML_START" "$TOML_END"; }
+
+host_install() {
+  local block; block="$(invariants_block)"
+
+  # Codex: ~/.agents/skills symlink is handled by link_roots. Always-on + TOML hook here.
+  if [ -d "$HOME/.codex" ]; then
+    inject_block "$HOME/.codex/AGENTS.override.md" "$START" "$block"
+    inject_block "$HOME/.codex/config.toml" "$TOML_START" "$(codex_hook_block)"
+  fi
+
+  # Claude: instruction block in CLAUDE.md + merged PreToolUse hook in settings.json.
+  if [ -d "$HOME/.claude" ]; then
+    inject_block "$HOME/.claude/CLAUDE.md" "$START" "$block"
+    claude_settings_install "$HOME/.claude/settings.json" "$(gate_path)"
+  fi
+
+  # OpenCode: instruction block in AGENTS.md + plugin file with __GATE__ resolved.
+  if [ -d "$HOME/.config/opencode" ]; then
+    inject_block "$HOME/.config/opencode/AGENTS.md" "$START" "$block"
+    local plugin="$HOME/.config/opencode/plugins/intent-overlay-gate.ts" gate
+    gate="$(gate_path)"
+    mkdir -p "$(dirname "$plugin")"
+    : >"$plugin"
+    local line
+    while IFS= read -r line || [ -n "$line" ]; do printf '%s\n' "${line//__GATE__/$gate}"; done \
+      <"$HOOKS_SRC/opencode-intent-gate.ts" >>"$plugin"
+  fi
+}
+
+host_uninstall() {
+  if [ -d "$HOME/.codex" ]; then
+    remove_block "$HOME/.codex/AGENTS.override.md" "$START" "$END"
+    remove_block "$HOME/.codex/config.toml" "$TOML_START" "$TOML_END"
+  fi
+  if [ -d "$HOME/.claude" ]; then
+    remove_block "$HOME/.claude/CLAUDE.md" "$START" "$END"
+    claude_settings_uninstall "$HOME/.claude/settings.json"
+  fi
+  if [ -d "$HOME/.config/opencode" ]; then
+    remove_block "$HOME/.config/opencode/AGENTS.md" "$START" "$END"
+    rm -f "$HOME/.config/opencode/plugins/intent-overlay-gate.ts"
+  fi
+}
+
+# --- commands ------------------------------------------------------------------------------------
+
+do_install() {
+  [ -f "$SRC/SKILL.md" ] || { echo "error: skill source not found at $SRC" >&2; return 1; }
+  local canon root link
+  canon="$(canonical)"
+  mkdir -p "$canon"
+  cp -R "$SRC/." "$canon/"
+  mkdir -p "$canon/hooks"
+  cp "$HOOKS_SRC/check-intent-frozen.sh" "$canon/hooks/"
+  chmod +x "$canon/hooks/check-intent-frozen.sh"
+  while IFS= read -r root; do
+    [ -d "$root" ] || continue
+    link="$root/$SKILL"
+    if [ -L "$link" ] && [ "$(readlink "$link")" = "$canon" ]; then continue; fi
+    rm -rf "$link"
+    ln -s "$canon" "$link"
+  done < <(link_roots)
+  host_install
+  echo "intent-overlay installed (canonical: $canon)."
+  echo "Codex hooks need trust on first use: run /hooks in Codex and approve."
+  echo "Indexing: run 'gentle-ai skill-registry refresh --force' in a project (or restart the session)."
+}
+
+do_uninstall() {
+  host_uninstall
+  local canon root link
+  canon="$(canonical)"
+  while IFS= read -r root; do
+    link="$root/$SKILL"
+    [ -L "$link" ] && rm -f "$link"
+  done < <(link_roots)
+  rm -rf "$canon"
+  echo "intent-overlay removed."
+}
+
+do_doctor() {
+  local canon ok=0 root link
+  canon="$(canonical)"
+  if [ -f "$canon/SKILL.md" ]; then echo "ok   - canonical present: $canon"; else echo "FAIL - canonical missing: $canon"; ok=1; fi
+  if [ -x "$canon/hooks/check-intent-frozen.sh" ]; then echo "ok   - gate script installed"; else echo "FAIL - gate script missing"; ok=1; fi
+  if [ -f "$canon/SKILL.md" ] && file_has_line "## Compact Rules" "$canon/SKILL.md"; then
+    echo "ok   - SKILL.md declares Compact Rules"; else echo "FAIL - SKILL.md missing Compact Rules"; ok=1; fi
+  while IFS= read -r root; do
+    [ -d "$root" ] || continue
+    link="$root/$SKILL"
+    [ -L "$link" ] || continue
+    if [ -e "$link" ] && [ "$(readlink "$link")" = "$canon" ]; then echo "ok   - symlink valid: $link"; else echo "FAIL - broken/wrong symlink: $link"; ok=1; fi
+  done < <(link_roots)
+  # Per-host wiring (only for hosts present on this machine).
+  if [ -d "$HOME/.codex" ]; then
+    file_has_line "$START" "$HOME/.codex/AGENTS.override.md" && echo "ok   - codex always-on block" || echo "warn - codex always-on block missing"
+    file_has_line "$TOML_START" "$HOME/.codex/config.toml" && echo "ok   - codex hook block" || echo "warn - codex hook block missing"
+  fi
+  if [ -d "$HOME/.claude" ]; then
+    file_has_line "$START" "$HOME/.claude/CLAUDE.md" && echo "ok   - claude always-on block" || echo "warn - claude always-on block missing"
+    file_contains "$GATE_MARK" "$HOME/.claude/settings.json" && echo "ok   - claude hook entry" || echo "warn - claude hook entry missing"
+  fi
+  if [ -d "$HOME/.config/opencode" ]; then
+    [ -f "$HOME/.config/opencode/plugins/intent-overlay-gate.ts" ] && echo "ok   - opencode gate plugin" || echo "warn - opencode gate plugin missing"
+  fi
+  return $ok
+}
+
+do_freeze() { # do_freeze CHANGE [DIR]
+  local change=${1:-} dir=${2:-.}
+  [ -n "$change" ] || { echo "error: usage: intent-overlay freeze <change>" >&2; return 1; }
+  mkdir -p "$dir/.atl/intent"
+  local f="$dir/.atl/intent/$change.frozen"
+  printf 'Intent Contract FROZEN: %s\nDate: %s\n' "$change" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >"$f"
+  echo "Frozen: $f"
+}
+
+do_unfreeze() { # do_unfreeze CHANGE [DIR]
+  local change=${1:-} dir=${2:-.}
+  [ -n "$change" ] || { echo "error: usage: intent-overlay unfreeze <change>" >&2; return 1; }
+  rm -f "$dir/.atl/intent/$change.frozen"
+  echo "Unfrozen: $change"
+}
+
+main() {
+  case "${1:-}" in
+    install) do_install ;;
+    uninstall) do_uninstall ;;
+    doctor) do_doctor ;;
+    freeze) shift; do_freeze "$@" ;;
+    unfreeze) shift; do_unfreeze "$@" ;;
+    ""|-h|--help) usage ;;
+    *) usage; return 1 ;;
+  esac
+}
+
+main "$@"
