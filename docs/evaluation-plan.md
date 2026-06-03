@@ -14,7 +14,7 @@ Every code task should move through the harness defined in `harness/HARNESS.md`:
 - **Apply loop** — implementation follows TDD (red → green → refactor); the Clean Code Gate is applied at
   refactor-exit, not at green.
 - **Verify gate** — completed work reports `Clean Code Gate: passed | blocked` with a score against
-  `docs/clean-code-rubric.md`.
+  `skills/clean-code-standards/references/clean-code-rubric.md`.
 
 ## Evaluations
 
@@ -34,4 +34,4 @@ Every code task should move through the harness defined in `harness/HARNESS.md`:
    - The plan gate stops for clarification before any implementation.
 
 5. **Review** — use `prompts/refactor-review.md` after a project exists.
-   - Verify scores against `docs/clean-code-rubric.md` and applies only the smallest safe changes.
+   - Verify scores against `skills/clean-code-standards/references/clean-code-rubric.md` and applies only the smallest safe changes.

@@ -1,89 +1,46 @@
-# Clean-Code Harness — 3-Phase Control Contract
+# Lightweight path — small changes in native plan/execute mode
 
-## What This Is
+Two paths, chosen by change size. This document is the **small-change path**. Substantial changes go
+through **SDD + the intent-overlay** (`overlay/`), which carries the same judgment as lenses and gates
+inside SDD's own phases. Never run this path *and* SDD for the same change.
 
-A **harness**, not a skill. A skill is passive knowledge the agent *consults* ("this is what good code
-looks like"). A harness is the **control structure that governs the agent's loop** — it dictates *how the
-agent is allowed to work*: frame the problem, surface an informed decision, keep a human in the loop, and
-gate quality before declaring done.
+| Change size | Path | Documents |
+| --- | --- | --- |
+| Trivial / small | This doc: native plan mode + clean-code judgment | none |
+| Substantial | SDD + `overlay/` (Intent Gate + Clean Code Gate per phase) | SDD's normal artifacts only |
 
-The judgment lives in the skill. This document is the workflow that puts that judgment on rails.
+## Why a separate lightweight path
+
+SDD's proposal → spec → design → tasks chain is the right rigor for substantial work and far too much
+for a one-function change. Forcing every change through it is what produced document bloat. So a small
+change stays in native plan/execute mode and never generates planning artifacts.
 
 ## Substrate
 
-Runs on **native Claude Code plan/execute mode**. No external dependencies, no global config, no extra
-tooling. Plan mode is already a human-in-the-loop gate (`ExitPlanMode` = approval).
-
-The **constitution** is not duplicated here — it is referenced:
+Native plan/execute mode. Plan mode is already a human-in-the-loop gate (`ExitPlanMode` = approval).
+The judgment and the quality bar are referenced, not duplicated:
 
 - `skills/clean-code-standards/SKILL.md` — the design judgment and hard rules.
-- `docs/clean-code-rubric.md` — the scoring criteria for the verify gate.
+- `skills/clean-code-standards/references/clean-code-rubric.md` — the scoring criteria for the verify gate.
 
-## Mental Model — 4 Layers
+## The loop
 
-```
-LAYER 1 — Native control:   PLAN <--> EXECUTE        (ExitPlanMode = macro human gate)
-LAYER 2 — Spine:            Plan > Apply loop > Verify   (the 3 phases)
-LAYER 3 — Discipline:       TDD red > green > REFACTOR   (inside Apply)
-LAYER 4 — Judgment:         skill + rubric as EXIT CRITERIA at decide and verify
-```
+1. **Frame (plan mode).** Understand the request, read the relevant repo context, and clarify ambiguity
+   — do not guess critical product behavior, stack, data model, or acceptance criteria. State safe,
+   reversible defaults as assumptions. If the change turns out to be substantial, STOP and switch to
+   SDD instead of continuing here.
+2. **Decide (plan mode).** Surface one design decision with 2–3 options and tradeoffs; choose the
+   smallest maintainable shape and state the slice boundary. Call `ExitPlanMode` — no code until the
+   user approves.
+3. **Apply (execute mode).** Per slice, run TDD: **RED** (failing test) → **GREEN** (minimal code, ugly
+   allowed) → **REFACTOR** (apply the clean-code skill, then run the Clean Code Gate). The Clean Code
+   Gate fires at **refactor-exit, never at green**. Per iteration, report files touched and tests run.
+4. **Verify.** Score the touched code against `skills/clean-code-standards/references/clean-code-rubric.md` and report
+   `Clean Code Gate: passed | blocked` with a score `/18`. Blocked → smallest fix → re-verify.
 
-**Hard integration rule:** the Clean Code Gate fires at **REFACTOR-exit, never at green**. Green buys
-correctness (it may be ugly and temporary); refactor buys quality; the gate guards the refactor. This is
-what lets TDD and the harness coexist instead of fighting.
+## Relationship to the overlay
 
-## Phase 1 — PLAN (plan mode)
-
-**Frame.** Understand the request, read the relevant repo context, and clarify ambiguity using the
-Clarification Gate from the skill. Do not guess critical product behavior, stack, data model, or
-acceptance criteria. State safe, reversible defaults as assumptions.
-
-**Decide.** Surface ONE design decision with 2–3 options and their tradeoffs. Choose the smallest
-maintainable shape and state why it is smaller/clearer than the alternatives. Define the slice boundary.
-
-**Human gate.** Call `ExitPlanMode`. No code is written until the user approves.
-
-**Output of this phase:**
-
-- Slice boundary (behavior, inputs/outputs, touched areas).
-- Design decision + rationale (why this shape, what was rejected and why).
-- Assumptions or open clarification questions.
-- Out-of-scope work.
-
-## Phase 2 — APPLY LOOP (execute mode)
-
-For each slice/task, run the TDD loop:
-
-1. **RED** — write a failing test for the target behavior.
-2. **GREEN** — write the minimal code to pass. Ugly is allowed here; it is temporary.
-3. **REFACTOR** — apply `skills/clean-code-standards/SKILL.md`, then run the **Clean Code Gate**.
-
-**HARD RULE:** the Clean Code Gate fires at refactor-exit, never at green. Green is never "done".
-
-Per iteration, report: files touched and tests run. Loop until the slice is complete.
-
-## Phase 3 — VERIFY
-
-Score the touched code against `docs/clean-code-rubric.md` and report:
-
-- `Clean Code Gate: passed | blocked`
-- Score `<n>/18`
-- Intent fit: `pass | partial | fail`
-- Findings and required changes.
-
-**Blocked** → loop back into APPLY for the smallest fix, then re-verify. **Passed** → done.
-
-## Integration Rules
-
-- **TDD:** refactor-exit is the gate; green is never "done".
-- **Human-in-the-loop:** two gates — the plan gate (`ExitPlanMode`) and the verify gate (blocked stops
-  and returns to the user).
-- **Informed decisions:** captured in the Phase 1 output. No separate decision-record file yet — add one
-  later only if the in-plan capture proves insufficient.
-
-## Out of Scope (add later, step by step)
-
-- Repo-local slash commands (`/speckit.*` or `/sdd-*` style).
-- Decision records as standalone files (ADR-lite).
-- Hooks in `.claude/settings.json` that mechanically block Edit/Write until a gate passes.
-- Engram persistence or a full Spec-Kit port.
+The overlay does NOT define a second phase model. For substantial changes it rides inside SDD's phases
+(see `overlay/skill/references/PHASE-LENS.md`): the intent lives in the approved `proposal`/`spec`/
+`design`, and each phase emits its `Intent Gate` / `Clean Code Gate` line. This lightweight path and
+SDD are alternatives chosen by size — never both for one change.

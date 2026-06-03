@@ -12,32 +12,32 @@ metadata:
 A governance layer over the host harness (gentle-ai/SDD). It does not replace the harness; it makes
 every phase obey one frozen intent and one quality bar. Two pillars, two gates:
 
-- **Intent (fidelity)** — a frozen Intent Contract, checked at every phase boundary by the **Intent Gate**.
-- **Judgment (quality)** — clean-code judgment per phase, checked at refactor-exit by the **Clean Code Gate**.
+- **Intent (fidelity)** — the approved SDD `proposal`/`spec`, checked at every phase boundary by the **Intent Gate**.
+- **Judgment (quality)** — the `clean-code-standards` skill (its Compact Rules + `/18` rubric), checked at refactor-exit by the **Clean Code Gate**.
 
-Full contract and per-phase detail in [`references/`](references): `INTENT-CONTRACT.md` (freeze ritual,
-template, change-request flow), `PHASE-LENS.md` (per-phase criteria), `VISION.md` (rationale).
+Per-phase detail in [`references/`](references): `PHASE-LENS.md` (per-phase criteria and the
+change-request flow) and `VISION.md` (rationale).
 
 ## Compact Rules
 
-- Before writing code, freeze an Intent Contract: objective, in-scope, out-of-scope, frozen decisions, acceptance criteria, and an SDD slice plan. Do not freeze while a critical decision is open.
-- When a decision is open, propose 2–3 options and explain each with tradeoffs; do not guess. There is no limit on clarification rounds before freeze.
-- Read the frozen Intent Contract at the start of every SDD phase; keep work within in-scope and respect out-of-scope.
-- Run the Intent Gate at every phase boundary and emit `Intent Gate: aligned | drift-detected`. On drift, STOP and return a change request to the human; never apply a scope change or a new decision silently.
-- A decision not already in the contract is escalated to the human, not decided inside a phase.
-- Prefer the smallest maintainable shape; reject unnecessary over-engineering. Working code that raises maintenance cost is insufficient.
-- Do not add handlers, wrappers, factories, interfaces, proxies, or lazy-loaders without a current caller; do not mirror a library API with a passthrough wrapper; do not create broad config objects just to pass values around.
-- Use semantic domain names; avoid vague names like data, item, handler, or utils unless the domain truly says so.
-- Refactor only to reduce or preserve reading complexity; passing tests do not justify harder-to-read code.
-- Run the Clean Code Gate at refactor-exit, never at green, and report `Clean Code Gate: passed | blocked`.
-- Keep domain rules separate from IO, UI, transport, and persistence.
+- Match ceremony to change size: trivial/small changes skip SDD — apply clean-code judgment inline and stop. Run SDD (and these gates) only for substantial changes. Never create planning documents the work does not need. No SDD ⇒ no verify phase, so YOU still run the Clean Code Gate at refactor-exit and self-check against the rubric, and use the host's plan/approval step as the human gate. Skipping SDD never skips the quality bar.
+- The intent lives in SDD's own artifacts, not a separate document: objective + in-scope/out-of-scope + decisions in the `proposal` (elaborated in `design`); acceptance criteria in the `spec`. The human approving the proposal is the freeze; code (`apply`) starts only after that approval.
+- Architecture-shaping decisions (move scope, costly to reverse, change observable behavior, or fix shape — pattern, dependency direction, interface, data model, library) are never made silently: always surfaced with 2–3 options and tradeoffs, never guessed. Who chooses depends on the mode (next rule).
+- Read the approved proposal/spec/design at the start of every SDD phase; keep work within in-scope and respect out-of-scope.
+- Run the Intent Gate at every phase boundary and emit `Intent Gate: aligned | drift-detected`. On drift, STOP and return a change request (a proposal amendment) to the human; never apply a scope change or a new decision silently.
+- Decision Ledger, mode-aware: every phase emits what it **Decided** (with rationale + rejected alternatives) and what it **Defers**. **Interactive** SDD → `propose`/`design` STOP and defer architecture-shaping decisions to the human. **Automatic** SDD → the agent decides them (smallest maintainable option) but records each in the ledger; never silently. Either way `design` elaborates only within the agreed decisions and returns a genuinely new architecture-shaping decision as a change request. Rules, gates, and verification stay in force in both modes.
+- The quality bar is the `clean-code-standards` skill — its `## Compact Rules` plus the `/18` rubric. This overlay governs intent and runs the gates; it does not define a second quality standard.
+- Run the Clean Code Gate at refactor-exit, never at green, and report `Clean Code Gate: passed | blocked` (scored against the clean-code-standards rubric).
 
 ## Decision Gates
 
 | Situation | Required action |
 | --- | --- |
-| Phase output would exceed in-scope | Stop; raise a change request to the human |
-| Decision not in the contract | Escalate; do not decide inside the phase |
-| New abstraction | Only if it removes current complexity and has a caller |
-| Refactor | Must reduce or preserve reading complexity |
-| Quality at green | Not done; gate fires only at refactor-exit |
+| Phase output would exceed in-scope | Stop; raise a change request (proposal amendment) to the human |
+| Architecture-shaping decision, interactive mode | Surface with options; defer to the human; log in the ledger |
+| Architecture-shaping decision, automatic mode | Agent picks the smallest maintainable option; log it (with rationale + rejected) in the ledger; never silently |
+| Local, reversible detail inside a slice | The phase may decide it, but logs it in the Decision Ledger |
+| Decision not covered by the proposal | Escalate as a change request; do not decide inside the phase |
+| Change is trivial/small (no SDD) | Skip SDD; apply clean-code judgment inline; still run the Clean Code Gate + self-check (no verify phase will) |
+| Quality rule needed | Defer to the `clean-code-standards` skill (its Compact Rules + rubric) |
+| Quality at green | Not done; the Clean Code Gate fires only at refactor-exit |

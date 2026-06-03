@@ -6,10 +6,13 @@ This lab is a pilot. Do not apply these standards globally yet.
 
 For any task that creates, modifies, refactors, or reviews code inside this lab, load and follow:
 
-- `harness/HARNESS.md` — the 3-phase control workflow (Plan, Apply loop, Verify).
-- `skills/clean-code-standards/SKILL.md` — the design judgment the harness gates against.
+- `skills/clean-code-standards/SKILL.md` — the design judgment both paths gate against.
+- For a **small change**: `harness/HARNESS.md` — native plan/execute mode + the Clean Code Gate.
+- For a **substantial change**: `overlay/skill/SKILL.md` + `overlay/skill/references/PHASE-LENS.md` —
+  SDD with the intent-overlay's gates folded into each phase.
 
-The user should not need to repeat the standard in every prompt. The lab context is the activation boundary.
+Pick the path by change size; do not run both for the same change. The user should not need to repeat
+the standard in every prompt — the lab context is the activation boundary.
 
 ## Workspace Rules
 

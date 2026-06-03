@@ -16,14 +16,14 @@ Minimum pass: **16/18** and no blocker.
 
 | Category | 0 | 1 | 2 |
 | --- | --- | --- | --- |
-| Simplicity | Clever, overbuilt, or maintenance-heavy | Mostly simple with some noise | Direct, minimal, easy to follow |
+| Simplicity | Clever, overbuilt, or deeply nested (pyramid) | Mostly simple, some nesting/noise | Direct, flat control flow (guard clauses), minimal, easy to follow |
 | Naming | Ambiguous or generic | Understandable but inconsistent | Semantic, precise, domain-friendly |
 | SOLID | Mixed responsibilities | Some separation | Clear responsibility and dependency direction |
-| DRY | Copy-paste or premature abstraction | Minor duplication or abstraction noise | Duplication removed only where responsibility is shared |
-| Magic values | Unexplained literals | Some literals remain | Meaningful constants/config/enums at correct scope |
-| File organization | Large/mixed files | Mostly grouped | Focused files with obvious boundaries |
-| Architecture fit | Fights project structure | Mostly follows existing shape | Respects architecture and keeps domain separate from adapters |
-| Self-documenting code | Needs comments to understand | Mostly clear | Reads clearly without explanatory comments |
+| DRY | Copy-paste, or premature/speculative abstraction (registry/dispatch/params without a caller) | Minor duplication or abstraction noise | Duplication removed only where responsibility is genuinely shared (one reason to change) |
+| Magic values | Unexplained or duplicated literals | Some literals remain | Meaningful constants/config/enums, single source, at the narrowest scope covering their uses |
+| File organization | Large/mixed files, or grouped by technical type so the flow scatters | Mostly grouped, some reading jumps | Focused files that read top-down by flow (high-level first, step-down), one level of abstraction per function |
+| Architecture fit | Fights project structure, mixes domain rules with IO, or models data so illegal states are representable | Mostly follows existing shape | Respects architecture, keeps domain rules pure (testable without IO mocks) and separate from adapters, and models variant states so illegal ones are unrepresentable |
+| Self-documenting code | Comments narrate the what or patch bad names/magic; positional/mystery call sites | Mostly clear | Reads clearly without explanatory comments (only a non-obvious why is documented); call sites name their arguments |
 | Intent fit | Ignores maintainer intent or adds design without need | Intent is partially preserved | Minimal change aligned with existing code and stated goal |
 
 ## Blockers
@@ -31,7 +31,7 @@ Minimum pass: **16/18** and no blocker.
 Any blocker fails the gate, regardless of score:
 
 - Secret or credential hardcoded.
-- Silent error handling.
+- Silent error handling, a generic/untyped error that loses the cause, or an ambiguous sentinel (`null`/`-1`) that collides with valid values.
 - Generated code that works but increases maintenance burden without a current design need.
 - New `Any`, tuple-return API, proxy, lazy-loader, factory, or interface without a current caller and clear justification.
 - Wrapper over a library API that only mirrors existing parameters instead of adding a current domain rule.

@@ -28,8 +28,8 @@ Nothing global is touched.
    Confirm `intent-overlay` now appears in `.atl/skill-registry.md`.
 
 3. **Behavioral layer** (plan + SDD): start an SDD change against `workspaces/dogfood-counter` using the
-   frozen contract in [`intent-contract.md`](intent-contract.md) (objective: add `reset()`; out-of-scope:
-   persistence + UI).
+   approved proposal in [`proposal.md`](proposal.md) (objective: add `reset()`; out-of-scope:
+   persistence + UI). Approving the proposal is the freeze — there is no separate contract.
 
 4. **Inject the drift** when the flow reaches `design`: paste the prompt from
    [`drift-task.md`](drift-task.md) ("also persist to localStorage and add a DOM widget").

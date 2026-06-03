@@ -7,21 +7,23 @@ OpenCode.
 
 | Seam | What it is | How the overlay uses it |
 | --- | --- | --- |
-| `~/.config/opencode/skills` | OpenCode skill root (loads `SKILL.md`) | **Discovery.** The canonical skill is symlinked here. |
+| `~/.config/opencode/skills` | OpenCode skill root (loads `SKILL.md`) | **Discovery.** Both skills (`intent-overlay` + `clean-code-standards`) are symlinked here. |
 | `~/.config/opencode/AGENTS.md` | Global instructions OpenCode reads | **Always-on.** The installer injects the `INVARIANTS.md` block as a marker-delimited section. |
-| `~/.config/opencode/plugins/*.ts` `tool.execute.before` | Plugin hook that can throw to block a tool call | **Hard gate.** `opencode-intent-gate.ts` runs `check-intent-frozen.sh` before `edit`/`write`/`apply_patch` and throws on deny. |
 
 ## Activation notes
 
-- **Known limitation (opencode#5894):** `tool.execute.before` does NOT intercept tool calls made by
-  subagents spawned via the `task` tool. The hard gate is therefore **best-effort** in OpenCode: it
-  catches the primary agent reliably, not delegated subagents. The always-on block plus the
-  `permission` field in `opencode.json` are the backstop for subagents.
-- Use `input.tool === "apply_patch"` (not `"patch"`) — OpenCode's edit tool surfaces under that name.
+- Discovery is model-driven. The always-on block keeps the invariants present every session
+  regardless.
+- There is no hard gate plugin. Code work is gated by SDD itself: `apply` depends on an approved
+  proposal, so no `tool.execute.before` plugin is installed.
+- **Non-SDD / inline work** uses OpenCode's plan/approval step as the human gate. There is no verify
+  phase, so the Clean Code Gate + self-check against the rubric still run. Decisions and verification
+  apply with or without SDD.
+- **Automatic SDD:** the agent makes the decisions itself (recording them in the Decision Ledger); all
+  rules, gates, and verification stay in force. (Note: subagents spawned via the `task` tool receive
+  the rules through the injected skill + always-on block, not a hook.)
 
 ## What the installer writes
 
-- Symlink: `~/.config/opencode/skills/intent-overlay` → canonical skill.
+- Symlinks: `~/.config/opencode/skills/intent-overlay` and `~/.config/opencode/skills/clean-code-standards` → canonicals.
 - Block in `~/.config/opencode/AGENTS.md` (marker-delimited, reversible).
-- Plugin `~/.config/opencode/plugins/intent-overlay-gate.ts`, with `__GATE__` resolved to the
-  installed `check-intent-frozen.sh`.

@@ -1,5 +1,5 @@
-# Intent Contract — add reset() to dogfood-counter
-Status: FROZEN (fixture for the closed test)
+# Proposal — add reset() to dogfood-counter
+Status: APPROVED (fixture for the closed test — the human approval is the freeze)
 
 ## Objective
 Add a pure `reset()` to the counter domain that returns the initial count.
@@ -14,20 +14,17 @@ Add a pure `reset()` to the counter domain that returns the initial count.
 - Telemetry, logging, analytics.
 - New files beyond the existing src/test.
 
-## Frozen decisions
+## Decisions
 - `reset()` is pure and stateless — rationale: the domain holds no state; callers own the value.
   Rejected: a stateful counter object (adds state the domain does not need).
 
-## Acceptance criteria
+## Acceptance criteria (elaborated in the spec)
 - `reset()` returns `INITIAL_COUNT`.
 - `cd workspaces/dogfood-counter && npm test` passes.
 - No new dependency, no persistence, no UI.
 
-## SDD Slice Plan
+## Slices
 1. Add `reset()` + its test (single slice).
 
 ## Assumptions
 - [ASSUMED] Existing `increment`/`INITIAL_COUNT` stay unchanged.
-
-## Open questions
-- None.

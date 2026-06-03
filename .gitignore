@@ -4,4 +4,7 @@ node_modules/
 .env
 .DS_Store
 coverage/
-workspaces/*/.git/
+
+# Experimental scratch space — variant labs, dogfood runs, throwaway projects.
+# Excluded from the repo on purpose (norms live in skills/ + overlay/, not here).
+workspaces/

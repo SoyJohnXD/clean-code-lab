@@ -3,7 +3,7 @@
 Use this prompt after an agent creates one of the sample projects.
 
 ```text
-Review the project in workspaces/<project-name> against docs/clean-code-rubric.md.
+Review the project in workspaces/<project-name> against skills/clean-code-standards/references/clean-code-rubric.md.
 
 Do not rewrite everything. Identify only the smallest changes needed for touched code to pass the Clean Code Gate.
 

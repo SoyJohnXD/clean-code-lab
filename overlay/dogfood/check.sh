@@ -23,7 +23,7 @@ file_contains() {
 [ -L "$LINK" ] && ok "project-skill symlink present: skills/intent-overlay" || no "project-skill symlink missing (run: ln -sfn ../overlay/skill skills/intent-overlay)"
 [ -f "$SKILL" ] && ok "SKILL.md reachable through the symlink" || no "SKILL.md not reachable through the symlink"
 { [ -f "$SKILL" ] && file_contains "## Compact Rules" "$SKILL"; } && ok "SKILL.md declares Compact Rules (gentle will inject them)" || no "SKILL.md missing Compact Rules"
-[ -f "$ROOT/overlay/dogfood/intent-contract.md" ] && ok "frozen Intent Contract fixture present" || no "intent-contract.md missing"
+[ -f "$ROOT/overlay/dogfood/proposal.md" ] && ok "approved proposal fixture present" || no "proposal.md missing"
 [ -f "$ROOT/overlay/dogfood/drift-task.md" ] && ok "drift-task fixture present" || no "drift-task.md missing"
 [ -d "$ROOT/workspaces/dogfood-counter" ] && ok "target workspace present" || no "workspaces/dogfood-counter missing"
 

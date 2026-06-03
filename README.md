@@ -1,26 +1,30 @@
 # Clean Code Lab
 
-Local home of the **clean-code harness** — a 3-phase control workflow that makes an agent build
-software the way we want it built: informed decisions, human-in-the-loop, and simple, decoupled,
-semantic code (SOLID + DRY).
+Local home of the **clean-code governance** — make an agent build software the way we want it built:
+informed decisions, human-in-the-loop, and simple, decoupled, semantic code (SOLID + DRY). Ceremony
+matches the work via two paths, chosen by change size.
 
-The lab is also where we validate the harness before promoting any of it to global agent configuration.
+The lab is also where we validate both before promoting any of it to global agent configuration.
 
-## The Harness
+## The two paths
 
-The lab is governed by `harness/HARNESS.md`, not by a passive skill. The harness runs on native
-plan/execute mode and moves through three phases with two human gates:
+Pick by change size — never run both for the same change.
+
+**Small changes** follow `harness/HARNESS.md` on native plan/execute mode, with two human gates:
 
 1. **Plan** (plan mode) — frame the request, surface one design decision with tradeoffs, define the
-   smallest slice. **Human gate:** you approve before any code is written (`ExitPlanMode`).
-2. **Apply loop** (execute mode) — implement the slice with TDD: red → green → refactor. The Clean Code
-   Gate fires at refactor-exit, never at green.
-3. **Verify** — score the touched code against `docs/clean-code-rubric.md`. **Human gate:** blocked stops
-   and returns to you; passed is done.
+   smallest slice. You approve before any code is written (`ExitPlanMode`).
+2. **Apply** (execute mode) — implement with TDD: red → green → refactor. The Clean Code Gate fires at
+   refactor-exit, never at green.
+3. **Verify** — score against `skills/clean-code-standards/references/clean-code-rubric.md`. Blocked stops and returns to you; passed is
+   done.
 
-The clean-code judgment lives in `skills/clean-code-standards/SKILL.md` + `docs/clean-code-rubric.md` —
-the harness's constitution. The harness decides *how* the agent works; the constitution decides *what*
-good code is.
+**Substantial changes** run SDD with the `overlay/` intent-overlay: the intent lives in SDD's approved
+`proposal`/`spec`/`design` (no separate contract, no extra documents), and every phase emits its
+`Intent Gate` line — code phases also emit `Clean Code Gate`. See `overlay/skill/references/PHASE-LENS.md`.
+
+The clean-code judgment lives in `skills/clean-code-standards/SKILL.md` + `skills/clean-code-standards/references/clean-code-rubric.md` —
+the single source of *what* good code is, shared by both paths.
 
 ## How to Use
 

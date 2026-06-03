@@ -20,11 +20,10 @@ count_marker() { # count_marker FILE
 
 make_fixture() { # make_fixture DIR
   local d=$1
-  mkdir -p "$d/overlay/adapters" "$d/.atl"
+  mkdir -p "$d/overlay/skill/references" "$d/.atl"
   printf '# Project\n\nSome existing instructions.\n' >"$d/AGENTS.md"
-  printf '# vision\n' >"$d/overlay/VISION.md"
-  printf '# lens\n' >"$d/overlay/PHASE-LENS.md"
-  printf '# contract\n' >"$d/overlay/INTENT-CONTRACT.md"
+  printf '# vision\n' >"$d/overlay/skill/references/VISION.md"
+  printf '# lens\n' >"$d/overlay/skill/references/PHASE-LENS.md"
   printf '| `clean-code-standards` | x | project | /x/SKILL.md |\n' >"$d/.atl/skill-registry.md"
 }
 

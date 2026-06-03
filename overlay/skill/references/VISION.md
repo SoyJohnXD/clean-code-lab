@@ -7,27 +7,31 @@ duplicate the quality standard — it points to the one that already exists.
 ## Two pillars
 
 1. **Judgment lens (quality).** Clean-code judgment, applied through a per-phase lens.
-   - Enforceable rules: the parent skill's `## Compact Rules` in [`../SKILL.md`](../SKILL.md)
+   - Enforceable rules: the `clean-code-standards` skill's `## Compact Rules`
+   - Scoring: that skill's `/18` rubric (`references/clean-code-rubric.md`)
    - Per-phase translation: [`PHASE-LENS.md`](PHASE-LENS.md)
-   - Origin: distilled from the clean-code-lab standard and its `/18` rubric; the enforceable subset
-     is embedded here so the skill is self-contained when installed globally.
+   - The overlay does NOT embed a second copy. `clean-code-standards` is installed alongside it and is
+     the single source of quality truth; this overlay only governs intent and runs the gates against it.
 
-2. **Intent anchor (fidelity).** A frozen Intent Contract captured before any code is written,
-   propagated to every phase, and checked at every phase boundary.
-   - Protocol and template: [`INTENT-CONTRACT.md`](INTENT-CONTRACT.md)
+2. **Intent anchor (fidelity).** SDD's own approved artifacts — `proposal` (objective, scope,
+   decisions), `design` (how), `spec` (acceptance) — are the intent. There is no separate contract:
+   the human approving the proposal is the freeze, propagated to every phase and checked at every
+   phase boundary.
+   - Per-phase translation and change-request flow: [`PHASE-LENS.md`](PHASE-LENS.md)
 
 ## Two gates
 
 | Gate | Fires when | Source | Failure means |
 | --- | --- | --- | --- |
 | **Clean Code Gate** | at refactor-exit, never at green | rubric `/18`, min pass 16, no blocker | loop back to refactor |
-| **Intent Gate** | at every phase boundary | Intent Contract | `drift-detected` → STOP, change request to human |
+| **Intent Gate** | at every phase boundary | approved `proposal`/`spec` | `drift-detected` → STOP, change request to human |
 
 ## Governing principle
 
 **Human-in-the-loop by explicit gates.** Nothing important is left to inference. The intent is frozen
-by a human before SDD starts, and any change to scope or a frozen decision halts the chain and returns
-to the human as an explicit change request. Drift is never applied silently — that is the whole point.
+when a human approves the proposal, and any change to scope or an approved decision halts the chain and
+returns to the human as an explicit change request (a proposal amendment). Drift is never applied
+silently — that is the whole point.
 
 ## What this overlay is NOT
 

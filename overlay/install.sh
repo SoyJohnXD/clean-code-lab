@@ -21,16 +21,17 @@ block() {
 $START
 ## Intent Overlay (active)
 
-Before any SDD chain, freeze an Intent Contract per \`overlay/INTENT-CONTRACT.md\` at the engram topic
-\`sdd/{change}/intent\`. Do not write code until the human freezes it.
+Govern every substantial SDD change with one approved intent and one quality bar — no extra documents.
+The intent lives in SDD's own \`proposal\`/\`spec\`/\`design\`; the human approving the proposal is the
+freeze. Trivial or small changes skip SDD: apply clean-code judgment inline and stop.
 
-Pass these overlay paths to EVERY SDD phase, applied through \`overlay/PHASE-LENS.md\`:
-- \`overlay/VISION.md\`
-- \`overlay/PHASE-LENS.md\`
-- \`overlay/INTENT-CONTRACT.md\`
+Pass these overlay paths to EVERY SDD phase, applied through \`overlay/skill/references/PHASE-LENS.md\`:
+- \`overlay/skill/references/VISION.md\`
+- \`overlay/skill/references/PHASE-LENS.md\`
 
 Every phase emits \`Intent Gate: aligned | drift-detected\`. Code phases also emit the Clean Code Gate
-at refactor-exit. \`drift-detected\` halts the chain and returns to the human as a change request.
+at refactor-exit. \`drift-detected\` halts the chain and returns to the human as a change request
+(a proposal amendment); it is never applied silently.
 $END
 BLOCK
 }
@@ -94,8 +95,8 @@ do_doctor() {
   local dir=$1 ok=0
   local agents="$dir/AGENTS.md" registry="$dir/.atl/skill-registry.md"
   if [ -f "$agents" ] && [ -w "$agents" ]; then echo "ok   - AGENTS.md present and writable"; else echo "FAIL - AGENTS.md missing or not writable"; ok=1; fi
-  for doc in VISION PHASE-LENS INTENT-CONTRACT; do
-    if [ -f "$dir/overlay/$doc.md" ]; then echo "ok   - overlay/$doc.md present"; else echo "FAIL - overlay/$doc.md missing"; ok=1; fi
+  for doc in VISION PHASE-LENS; do
+    if [ -f "$dir/overlay/skill/references/$doc.md" ]; then echo "ok   - overlay/skill/references/$doc.md present"; else echo "FAIL - overlay/skill/references/$doc.md missing"; ok=1; fi
   done
   if [ -f "$registry" ] && file_contains "clean-code-standards" "$registry"; then
     echo "ok   - clean-code-standards registered"
