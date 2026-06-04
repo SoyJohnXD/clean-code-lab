@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run intent-overlay.test.sh
+        if: runner.os != 'Windows'
+        shell: bash
+        run: bash overlay/intent-overlay.test.sh
+
+      - name: Run install.test.sh
+        if: runner.os != 'Windows'
+        shell: bash
+        run: bash overlay/install.test.sh
+
+      - name: PS1 syntax check — intent-overlay.ps1
+        if: runner.os == 'Windows'
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          powershell -NonInteractive -Command "Get-Help overlay/intent-overlay.ps1 2>&1"
+
+      - name: PS1 syntax check — install.ps1
+        if: runner.os == 'Windows'
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          powershell -NonInteractive -Command "Get-Help overlay/install.ps1 2>&1"
