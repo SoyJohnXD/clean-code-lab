@@ -51,3 +51,29 @@ If the request is too vague, the agent asks before coding instead of guessing.
 - Global configuration changes.
 - Rewriting existing production projects.
 - Enforcing style through tooling before the expected behavior is validated.
+
+## Installation
+
+The intent-overlay is installed automatically by [agent-stack](https://github.com/SoyJohnXD/agent-stack) bootstrap.
+
+For manual install:
+
+**Linux / macOS**
+```bash
+./overlay/intent-overlay install
+```
+
+**Windows (PowerShell)**
+```powershell
+# Requires $env:AGENT_STACK_LIB pointing to agent-stack/lib
+powershell -ExecutionPolicy Bypass -File overlay/intent-overlay.ps1 install
+```
+
+**Per-project overlay** (adds the intent-overlay block to a project's AGENTS.md):
+```bash
+# Linux/macOS
+./overlay/install.sh /path/to/your/project
+
+# Windows
+powershell -ExecutionPolicy Bypass -File overlay/install.ps1 -Dir C:\path\to\your\project
+```
