@@ -1,10 +1,14 @@
 ---
 name: intent-overlay
-description: "Use when creating, refactoring, reviewing code, or running any SDD/OpenSpec phase (explore, propose, spec, design, tasks, apply, verify, archive). Freezes intent before code and keeps scope and clean-code quality intact across the whole chain; scope drift returns to the human instead of being applied silently."
+description: "Governance overlay for all code creation, refactoring, review, and SDD phases. Freezes intent; scope drift returns to the human, never applied silently."
+when_to_use: |
+  Use when creating, refactoring, or reviewing any code, or running any SDD/OpenSpec phase
+  (explore → archive). Critical when architectural decisions arise, when the change is
+  substantial enough for SDD, or at any refactor-exit where the Clean Code Gate fires.
 license: Apache-2.0
 metadata:
   author: clean-code-lab
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Intent Overlay — governance for every phase

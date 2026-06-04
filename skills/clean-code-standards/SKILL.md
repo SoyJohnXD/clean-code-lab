@@ -1,10 +1,14 @@
 ---
 name: clean-code-standards
-description: "Use when implementing, writing, refactoring, or reviewing code in this lab. Enforces clean-code standards and clarification before coding."
+description: "Clean-code standards for implementation, refactoring, and review. Enforces readability, structural rules, and the /18 rubric at every refactor-exit."
+when_to_use: |
+  Use when implementing, writing, refactoring, or reviewing any code. Apply to touched code
+  only — not untouched files. Triggers at every code change, test write, and refactor task.
+  The Clean Code Gate fires at refactor-exit, not at green tests.
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "0.4"
+  version: "0.5"
 ---
 
 ## Activation Contract
