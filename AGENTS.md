@@ -37,3 +37,19 @@ Every code task in this lab must report:
 - Tests/checks run.
 - `Clean Code Gate: passed` or `Clean Code Gate: blocked`.
 - Tradeoffs or legacy seams intentionally left untouched.
+
+<!-- intent-overlay:start -->
+## Intent Overlay (active)
+
+Govern every substantial SDD change with one approved intent and one quality bar — no extra documents.
+The intent lives in SDD's own `proposal`/`spec`/`design`; the human approving the proposal is the
+freeze. Trivial or small changes skip SDD: apply clean-code judgment inline and stop.
+
+Pass these overlay paths to EVERY SDD phase, applied through `overlay/skill/references/PHASE-LENS.md`:
+- `overlay/skill/references/VISION.md`
+- `overlay/skill/references/PHASE-LENS.md`
+
+Every phase emits `Intent Gate: aligned | drift-detected`. Code phases also emit the Clean Code Gate
+at refactor-exit. `drift-detected` halts the chain and returns to the human as a change request
+(a proposal amendment); it is never applied silently.
+<!-- intent-overlay:end -->
