@@ -14,10 +14,12 @@ metadata:
 # Intent Overlay — governance for every phase
 
 A governance layer over the host harness (gentle-ai/SDD). It does not replace the harness; it makes
-every phase obey one frozen intent and one quality bar. Two pillars, two gates:
+every phase obey one frozen intent and one quality bar. Two pillars, three gates:
 
 - **Intent (fidelity)** — the approved SDD `proposal`/`spec`, checked at every phase boundary by the **Intent Gate**.
-- **Judgment (quality)** — the `clean-code-standards` skill (its Compact Rules + `/18` rubric), checked at refactor-exit by the **Clean Code Gate**.
+- **Judgment (quality)** — the `clean-code-standards` skill (its Compact Rules + `/18` rubric), checked
+  at two scopes: touched-code at refactor-exit by the **Clean Code Gate**, and whole-change (or a
+  completed layer) by the **System Gate** (`references/system-review.md`).
 
 Per-phase detail in [`references/`](references): `PHASE-LENS.md` (per-phase criteria and the
 change-request flow) and `VISION.md` (rationale).
@@ -32,6 +34,7 @@ change-request flow) and `VISION.md` (rationale).
 - Decision Ledger, mode-aware: every phase emits what it **Decided** (with rationale + rejected alternatives) and what it **Defers**. **Interactive** SDD → `propose`/`design` STOP and defer architecture-shaping decisions to the human. **Automatic** SDD → the agent decides them (smallest maintainable option) but records each in the ledger; never silently. Either way `design` elaborates only within the agreed decisions and returns a genuinely new architecture-shaping decision as a change request. Rules, gates, and verification stay in force in both modes.
 - The quality bar is the `clean-code-standards` skill — its `## Compact Rules` plus the `/18` rubric. This overlay governs intent and runs the gates; it does not define a second quality standard.
 - Run the Clean Code Gate at refactor-exit, never at green, and report `Clean Code Gate: passed | blocked` (scored against the clean-code-standards rubric).
+- Run the System Gate at verify (whole change), at apply milestones (a completed tasks Phase, over that layer), and at the end of the no-SDD path for substantial multi-file work — report `System Gate: passed | blocked` per `clean-code-standards` `references/system-review.md`; blocked halts the chain like a blocked Clean Code Gate.
 
 ## Decision Gates
 
@@ -45,3 +48,4 @@ change-request flow) and `VISION.md` (rationale).
 | Change is trivial/small (no SDD) | Skip SDD; apply clean-code judgment inline; still run the Clean Code Gate + self-check (no verify phase will) |
 | Quality rule needed | Defer to the `clean-code-standards` skill (its Compact Rules + rubric) |
 | Quality at green | Not done; the Clean Code Gate fires only at refactor-exit |
+| System-scope quality needed (whole change / completed layer) | Defer to clean-code-standards `references/system-review.md`; fires at verify, apply milestones, and the no-SDD path |

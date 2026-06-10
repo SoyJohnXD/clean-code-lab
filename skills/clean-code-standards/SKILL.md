@@ -37,6 +37,7 @@ and the `/18` rubric (`references/clean-code-rubric.md`).
 - Keep business rules pure (data → decision, no IO); push IO to the edges; the dependency points inward.
 - Self-documenting code; no what-comments; JSDoc only for the non-obvious why or complex contracts (no type echo).
 - Score touched code against the `/18` rubric at the Clean Code Gate (refactor-exit); min pass 16, no blocker.
+- At system scope (whole change or completed layer), run the System Gate (`references/system-review.md`): no cross-file duplication, domain never imports infra, no god-module/fat-interface growth, one style per concern, primitives reused.
 
 ## Hard Rules
 
@@ -136,3 +137,5 @@ Return:
 - `references/domain-io-case-study.md` — variant comparison (mixed/leaky/ports-adapters) that distilled the pure-domain / IO-at-the-edges norm via "test the rule without mocks".
 - `references/comments-case-study.md` — variant comparison (what/none/why/jsdoc) that distilled the self-documenting norm and the JSDoc-for-why convention.
 - `references/clean-code-rubric.md` — scoring rubric for review tasks.
+- `references/system-review.md` — the System Gate: whole-change DRY/SOLID lens, blockers, and the primitives registry contract.
+- `references/fitness-functions.md` — mechanical duplication/dependency/complexity checks that back the System Gate.

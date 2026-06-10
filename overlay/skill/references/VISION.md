@@ -19,12 +19,13 @@ duplicate the quality standard — it points to the one that already exists.
    phase boundary.
    - Per-phase translation and change-request flow: [`PHASE-LENS.md`](PHASE-LENS.md)
 
-## Two gates
+## Two pillars, three gates
 
 | Gate | Fires when | Source | Failure means |
 | --- | --- | --- | --- |
 | **Clean Code Gate** | at refactor-exit, never at green | rubric `/18`, min pass 16, no blocker | loop back to refactor |
 | **Intent Gate** | at every phase boundary | approved `proposal`/`spec` | `drift-detected` → STOP, change request to human |
+| **System Gate** | at verify, at apply milestones, and at the end of the no-SDD path | quality pillar at whole-change scope, `clean-code-standards` `references/system-review.md` | `blocked` → halts the chain like a blocked Clean Code Gate |
 
 ## Governing principle
 
